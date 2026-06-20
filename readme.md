@@ -17,59 +17,34 @@ FastAPI · SQLite (SQLAlchemy) · Qdrant · Ollama (neural-chat:7b) · JWT · Py
 ## Architecture
 
 ┌─────────────────────────────────────────────────────────┐
-
-│   AI-POWERED RECRUITMENT INTELLIGENCE PLATFORM           │
-
-│            SYSTEM ARCHITECTURE                           │
-
+│      AI-POWERED RECRUITMENT INTELLIGENCE PLATFORM        │
+│                 SYSTEM ARCHITECTURE                      │
 └─────────────────────────────────────────────────────────┘
+
 CLIENT LAYER:
-
 ┌──────────────────────┐
-
 │   Frontend (HTML/JS) │
-
 │   - Resume Upload UI │
-
 │   - Chat Interface   │
-
 │   - Results Display  │
-
 └──────────┬───────────┘
-
-│ REST API
-
-▼
-
+           │ REST API
+           ▼
 BACKEND LAYER:
-
-┌──────────────────────────────────────────────┐
-
-│         FastAPI Backend (main.py)            │
-
-├──────────────────────────────────────────────┤
-
-│  • Authentication (JWT tokens)               │
-
-│  • Resume Upload & Storage                   │
-
-│  • Chat Message Processing                   │
-
-│  • Search & Ranking Logic                    │
-
-└──────────┬──────────────┬──────────┬─────────┘
-
-│              │          │
-
-┌──────▼──┐    ┌──────▼──┐   ┌──▼───────┐
-
-│ Database │    │ Qdrant  │   │  Ollama  │
-
-│ (SQLite) │    │ Vector  │   │neural-   │
-
-│          │    │  Store  │   │chat:7b   │
-
-└──────────┘    └─────────┘   └──────────┘
+┌────────────────────────────────────────────────┐
+│           FastAPI Backend (main.py)             │
+├──────────────────────────────────────────────────┤
+│  • Authentication (JWT tokens)                  │
+│  • Resume Upload & Storage                      │
+│  • Chat Message Processing                      │
+│  • Search & Ranking Logic                       │
+└──────────┬───────────────┬────────────┬─────────┘
+           │               │            │
+     ┌─────▼─────┐   ┌─────▼─────┐  ┌───▼──────┐
+     │  Database │   │  Qdrant   │  │  Ollama  │
+     │ (SQLite)  │   │  Vector   │  │ neural-  │
+     │           │   │  Store    │  │ chat:7b  │
+     └───────────┘   └───────────┘  └──────────┘
 DATA FLOW:
 
 1.User uploads resume → Saved to database
