@@ -1,6 +1,6 @@
-# Resume AI Chatbot
-A locally-running RAG-based resume screening system for HR workflows.
-Upload resumes, ask natural language questions, and get ranked candidates.
+# AI-Powered Recruitment Intelligence Platform
+
+A locally-running RAG-based resume screening system for HR workflows. Upload resumes, ask natural language questions, and get ranked candidates.
 
 ## Features
 - PDF/DOCX/TXT resume upload with per-user isolation

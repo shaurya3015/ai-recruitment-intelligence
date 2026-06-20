@@ -34,7 +34,7 @@ BACKEND_ROOT_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BACKEND_ROOT_DIR / "uploaded_resumes"
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
-app = FastAPI(title="Resume Chatbot API", version="4.0.0")
+app = FastAPI(title="AI-Powered Recruitment Intelligence Platform", version="4.0.0")
 
 allowed_origins = [
     origin.strip()
