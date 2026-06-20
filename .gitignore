@@ -21,3 +21,16 @@ Thumbs.db
 
 # Environment variables
 .env
+
+# Databases & Storage
+*.db
+*.sqlite
+backend/qdrant_storage/
+
+# Sensitive Data & Resumes
+backend/uploaded_resumes/
+backend/RejectedDS/
+backend/ShortlistedDS/
+backend/parsed_resumes.json
+backend/parsed_resumes.txt
+backend/chat_history.json
