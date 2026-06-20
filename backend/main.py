@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from fastapi import Body, Depends, FastAPI, File, HTTPException, Response, UploadFile
+from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
@@ -93,13 +93,20 @@ async def _save_upload(file: UploadFile, owner_id: int) -> tuple[Path, int]:
     return destination, size
 
 
-def _create_resume_record(db: Session, current_user: TokenData, file_path: Path, file_size: int) -> Resume:
+def _create_resume_record(
+    db: Session,
+    current_user: TokenData,
+    file_path: Path,
+    file_size: int,
+    conversation_id: int | None = None,
+) -> Resume:
     text = extract_text_from_file(str(file_path))
     if not text.strip():
         raise HTTPException(status_code=400, detail=f"Could not extract text from {file_path.name}")
 
     resume = Resume(
         user_id=current_user.user_id,
+        conversation_id=conversation_id,
         file_name=file_path.name,
         file_path=str(file_path),
         file_size=file_size,
@@ -110,7 +117,9 @@ def _create_resume_record(db: Session, current_user: TokenData, file_path: Path,
     db.commit()
     db.refresh(resume)
 
-    point_id = embed_and_store_resume(current_user.user_id, resume.id, text, file_path.name)
+    point_id = embed_and_store_resume(
+        current_user.user_id, resume.id, text, file_path.name, conversation_id=conversation_id
+    )
     resume.embedding_generated = point_id is not None
     resume.qdrant_point_id = point_id
     db.commit()
@@ -129,6 +138,12 @@ def _serialize_message(message: Message) -> Dict:
 def _require_admin(current_user: TokenData) -> None:
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins can perform this action")
+
+
+def get_admin_user(current_user: TokenData = Depends(get_current_user)) -> TokenData:
+    """Dependency that allows only admin (HR) accounts through. Returns 403 otherwise."""
+    _require_admin(current_user)
+    return current_user
 
 
 def _tokenize_search_text(text: str) -> set[str]:
@@ -234,13 +249,17 @@ def _dedupe_resumes_by_candidate(resumes: list[Resume]) -> list[Resume]:
     return unique
 
 
-def _find_resume_identity_matches(db: Session, user_id: int, query: str, limit: int = 5) -> list[Resume]:
+def _find_resume_identity_matches(db: Session, user_id: int, query: str, limit: int = 5, conversation_id: int | None = None) -> list[Resume]:
     query_tokens = _tokenize_search_text(query) - IDENTITY_STOPWORDS
     if not query_tokens:
         return []
 
     matches = []
-    resumes = db.query(Resume).filter(Resume.user_id == user_id).order_by(Resume.created_at.desc()).all()
+    query_obj = db.query(Resume).filter(Resume.user_id == user_id)
+    if conversation_id is not None:
+        query_obj = query_obj.filter(Resume.conversation_id == conversation_id)
+
+    resumes = query_obj.order_by(Resume.created_at.desc()).all()
     for resume in resumes:
         identity_text = f"{resume.file_name}\n{(resume.extracted_text or '')[:250]}"
         identity_tokens = _tokenize_search_text(identity_text)
@@ -250,11 +269,16 @@ def _find_resume_identity_matches(db: Session, user_id: int, query: str, limit: 
     return _dedupe_resumes_by_candidate(matches)[:limit]
 
 
-def _search_resumes_from_db(db: Session, user_id: int, query: str, limit: int = 5) -> list[Resume]:
+def _search_resumes_from_db(db: Session, user_id: int, query: str, limit: int = 5, conversation_id: int | None = None) -> list[Resume]:
     """Fallback search used when embeddings/vector search are unavailable."""
     query_tokens = _tokenize_search_text(query)
     identity_query_tokens = query_tokens - IDENTITY_STOPWORDS
-    resumes = db.query(Resume).filter(Resume.user_id == user_id).all()
+
+    query_obj = db.query(Resume).filter(Resume.user_id == user_id)
+    if conversation_id is not None:
+        query_obj = query_obj.filter(Resume.conversation_id == conversation_id)
+
+    resumes = query_obj.all()
     if not query_tokens:
         return resumes[:limit]
 
@@ -460,6 +484,16 @@ async def chat(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
+    # ChatGPT-style isolation: retrieval is scoped strictly to files uploaded in
+    # THIS conversation. Files from other chats (or the HR bulk pool, which has no
+    # conversation_id) are never searchable here.
+    conversation_files = (
+        db.query(Resume)
+        .filter(Resume.user_id == current_user.user_id, Resume.conversation_id == conversation_id)
+        .order_by(Resume.created_at.asc())
+        .all()
+    )
+
     db.add(Message(conversation_id=conversation_id, role="user", content=message, sources="[]"))
     if conversation.title == "New Conversation":
         conversation.title = (message[:40] + "...") if len(message) > 40 else message
@@ -469,16 +503,18 @@ async def chat(
     context_chunks = []
     seen_resume_ids = set()
     seen_candidate_keys = set()
-    identity_matches = _find_resume_identity_matches(db, current_user.user_id, message)
-    use_resume_context = _needs_resume_context(message) or bool(identity_matches)
+    identity_matches = _find_resume_identity_matches(db, current_user.user_id, message, conversation_id=conversation_id)
+    # If the user uploaded a file in this chat, treat the conversation as resume-scoped
+    # so questions like "rate skills" use it even without explicit resume keywords.
+    use_resume_context = _needs_resume_context(message) or bool(identity_matches) or bool(conversation_files)
 
     if use_resume_context:
-        db_matches = identity_matches or _search_resumes_from_db(db, current_user.user_id, message)
+        db_matches = identity_matches or _search_resumes_from_db(db, current_user.user_id, message, conversation_id=conversation_id)
         for resume in db_matches:
             _add_resume_context(resume, sources, context_chunks, seen_resume_ids, seen_candidate_keys, "database_text")
 
         if not identity_matches:
-            search_results = search_user_resumes(current_user.user_id, message)
+            search_results = search_user_resumes(current_user.user_id, message, conversation_id=conversation_id)
             for hit in search_results:
                 payload = hit.payload or {}
                 resume_id = payload.get("resume_id")
@@ -505,26 +541,43 @@ async def chat(
                     f"{payload.get('full_text') or payload.get('text') or resume.extracted_text or ''}"
                 )
 
-    history = (
+    all_messages = (
         db.query(Message)
         .filter(Message.conversation_id == conversation_id)
         .order_by(Message.created_at.asc())
         .all()
     )
-    history_str = "\n".join([f"{msg.role.capitalize()}: {msg.content}" for msg in history[-10:]])
+    # The current user message was already persisted above, so drop it from the
+    # history and pass the remaining recent turns to the model as proper chat
+    # messages (rather than squashing them into a single prompt string). Only real
+    # dialogue turns go to the model — "file" marker messages are UI-only.
+    prior_messages = [m for m in all_messages[:-1] if m.role in ("user", "assistant")][-10:]
+    chat_history = [{"role": m.role, "content": m.content} for m in prior_messages]
+
     context = "\n\n---\n\n".join(context_chunks)
+    file_names = [r.file_name for r in conversation_files]
     if use_resume_context:
+        if file_names:
+            files_str = ", ".join(f'"{name}"' for name in file_names)
+            scope_line = (
+                f"The only file(s) uploaded in this chat are: {files_str}. "
+                "Use ONLY these files. Do not reference, compare against, or mention any "
+                "other candidate or file, even if a name appears earlier in this conversation.\n"
+            )
+        else:
+            scope_line = (
+                "No file has been uploaded in this chat yet. If the question requires a resume, "
+                "ask the user to upload one; do not use or invent any candidate.\n"
+            )
         prompt = f"""You are ResumeAI, a practical resume-screening assistant.
 
-Conversation History:
-{history_str}
-
-Relevant resume context from this user's private collection:
+{scope_line}Relevant resume context from this user's private collection:
 {context}
 
 User's latest question: "{message}"
 
 Answer the latest question using the retrieved resume context. Give specific, useful analysis.
+If the user asks to "compare to JD" but no job description text is provided, ask them to paste the job description; do not invent or compare against another candidate.
 If the resume context is empty, say that no matching uploaded resume was found and ask for the right resume.
 Do not claim a candidate is missing if their details appear in the retrieved context.
 Format the answer in clear Markdown.
@@ -532,15 +585,12 @@ Format the answer in clear Markdown.
     else:
         prompt = f"""You are ResumeAI, a helpful chatbot inside a resume-screening app.
 
-Conversation History:
-{history_str}
-
 User's latest message: "{message}"
 
 Respond naturally and briefly. Do not summarize resumes, mention uploaded files, or show source material unless the user asks about a resume, candidate, job description, skills, experience, education, ranking, comparison, or interview questions.
 """
 
-    answer = get_ai_response(prompt)
+    answer = get_ai_response(prompt, history=chat_history)
     db.add(Message(conversation_id=conversation_id, role="assistant", content=answer, sources=json.dumps(sources)))
     db.commit()
     return JSONResponse(content={"answer": answer, "sources": sources})
@@ -549,20 +599,52 @@ Respond naturally and briefly. Do not summarize resumes, mention uploaded files,
 @app.post("/upload/resume")
 async def upload_resume(
     file: UploadFile = File(...),
+    conversation_id: Optional[int] = Form(default=None),
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Validate the target conversation up front so the upload is scoped correctly.
+    conversation = None
+    if conversation_id is not None:
+        conversation = db.query(Conversation).filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.user_id,
+        ).first()
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+
     file_path, file_size = await _save_upload(file, current_user.user_id)
     try:
-        resume = _create_resume_record(db, current_user, file_path, file_size)
+        resume = _create_resume_record(
+            db, current_user, file_path, file_size, conversation_id=conversation_id
+        )
     except Exception:
         if file_path.exists():
             file_path.unlink()
         raise
 
+    # Record a visible "file" message in the thread so the upload shows as a chip
+    # in the chat history (and survives reloads), ChatGPT-style.
+    if conversation is not None:
+        conversation.resume_id = resume.id
+        file_meta = {
+            "resume_id": resume.id,
+            "file_name": resume.file_name,
+            "file_size": resume.file_size,
+        }
+        db.add(Message(
+            conversation_id=conversation.id,
+            role="file",
+            content=resume.file_name,
+            sources=json.dumps([file_meta]),
+        ))
+        db.commit()
+
     return {
         "resume_id": resume.id,
         "file_name": resume.file_name,
+        "file_size": resume.file_size,
+        "conversation_id": conversation_id,
         "embedding_generated": resume.embedding_generated,
         "message": "Resume uploaded and processed successfully",
     }
@@ -571,10 +653,16 @@ async def upload_resume(
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
+    conversation_id: Optional[int] = Form(default=None),
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return await upload_resume(file, current_user, db)
+    return await upload_resume(
+        file=file,
+        conversation_id=conversation_id,
+        current_user=current_user,
+        db=db,
+    )
 
 
 @app.get("/resumes")
@@ -623,7 +711,7 @@ async def get_resume_file(
 @app.post("/admin/upload/bulk")
 async def bulk_upload_resumes(
     files: List[UploadFile] = File(...),
-    current_user: TokenData = Depends(get_current_user),
+    current_user: TokenData = Depends(get_admin_user),
     db: Session = Depends(get_db),
 ):
     created = []
@@ -672,7 +760,7 @@ async def bulk_upload_resumes(
 
 @app.get("/admin/candidates")
 async def get_all_candidates(
-    current_user: TokenData = Depends(get_current_user),
+    current_user: TokenData = Depends(get_admin_user),
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
@@ -683,7 +771,7 @@ async def get_all_candidates(
 @app.post("/admin/rank-candidates")
 async def rank_candidates_endpoint(
     job_title: str = "",
-    current_user: TokenData = Depends(get_current_user),
+    current_user: TokenData = Depends(get_admin_user),
 ):
     from ranking import rank_candidates
 
@@ -697,7 +785,7 @@ async def rank_candidates_endpoint(
 
 @app.get("/admin/candidates/ranked")
 async def get_ranked_candidates(
-    current_user: TokenData = Depends(get_current_user),
+    current_user: TokenData = Depends(get_admin_user),
     db: Session = Depends(get_db),
     limit: int = 50,
 ):
@@ -725,7 +813,7 @@ async def get_ranked_candidates(
 
 @app.get("/admin/candidates/export")
 async def export_ranked_candidates(
-    current_user: TokenData = Depends(get_current_user),
+    current_user: TokenData = Depends(get_admin_user),
     db: Session = Depends(get_db),
 ):
     rows = await get_ranked_candidates(current_user, db, limit=1000)

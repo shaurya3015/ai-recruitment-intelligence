@@ -13,7 +13,8 @@ qdrant = QdrantClient(":memory:")
 def get_local_embedding(text):
     """Generates an embedding locally using Ollama."""
     try:
-        response = ollama.embeddings(model=EMBEDDING_MODEL, prompt=text)
+        client = ollama.Client(host='http://localhost:11434')
+        response = client.embeddings(model=EMBEDDING_MODEL, prompt=text)
         return response['embedding']
     except Exception as e:
         print(f"Error generating local embedding: {e}")

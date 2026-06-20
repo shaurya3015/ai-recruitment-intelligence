@@ -471,6 +471,184 @@
     /* pulse animation for thinking */
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .pulse-text { animation: pulse 1.4s ease-in-out infinite; }
+
+    /* ── View toggle (Chat / HR) ── */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      margin: 10px 10px 0;
+      padding: 4px;
+      background: #f3f4f6;
+      border-radius: 10px;
+    }
+    .view-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 8px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #6b7280;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s, box-shadow 0.14s;
+    }
+    .view-tab i { font-size: 12px; }
+    .view-tab.active { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .view-tab.hidden { display: none !important; }
+
+    .auth-hint { font-size: 10.5px; color: #9ca3af; margin: -2px 0 7px; line-height: 1.4; }
+
+    /* Hide chat-only sidebar bits while in HR mode */
+    body.hr-mode .sidebar-pad,
+    body.hr-mode .sec-label,
+    body.hr-mode #conversation-list,
+    body.hr-mode .upload-section { display: none; }
+
+    /* ── HR Dashboard ── */
+    #hr-dashboard {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #hr-dashboard.hidden { display: none !important; }
+
+    .hr-topbar {
+      padding: 13px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .hr-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 920px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hr-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .hr-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 14px;
+    }
+    .hr-card-title i { color: var(--accent); }
+
+    .hr-dropzone {
+      display: block;
+      border: 1.5px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 26px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .hr-dropzone:hover, .hr-dropzone.dragover { border-color: var(--accent); background: var(--accent-light); }
+    .hr-dropzone i { font-size: 26px; color: #9ca3af; display: block; margin-bottom: 8px; }
+
+    .hr-file-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .hr-file-list li {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 12.5px; color: #374151;
+      background: #f9fafb; border: 1px solid #f0f0f0;
+      border-radius: 8px; padding: 7px 11px;
+    }
+    .hr-file-list li i { color: var(--accent); }
+    .hr-file-list li .fsize { margin-left: auto; color: #9ca3af; font-size: 11.5px; }
+
+    .hr-progress { margin-top: 12px; height: 7px; background: #eef0f3; border-radius: 999px; overflow: hidden; }
+    .hr-progress.hidden { display: none; }
+    .hr-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--teal)); transition: width 0.2s; }
+
+    .hr-btn-primary {
+      margin-top: 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 9px 18px;
+      border: none; border-radius: 10px;
+      background: var(--accent); color: #fff;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background 0.14s, opacity 0.14s;
+    }
+    .hr-btn-primary:hover { background: var(--accent-dark); }
+    .hr-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .hr-btn-secondary {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 14px;
+      border: 1px solid #e5e7eb; border-radius: 10px;
+      background: #fff; color: #374151;
+      font-size: 12.5px; font-weight: 500; cursor: pointer;
+      transition: border-color 0.14s, background 0.14s;
+    }
+    .hr-btn-secondary:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); }
+
+    .hr-rank-row { display: flex; gap: 10px; align-items: stretch; }
+    .hr-rank-row input {
+      flex: 1; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 9px 13px; font-size: 13px; outline: none; font-family: inherit;
+    }
+    .hr-rank-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+    .hr-rank-row .hr-btn-primary { margin-top: 0; flex-shrink: 0; }
+
+    .hr-status, .hr-result { font-size: 12.5px; color: #6b7280; margin-top: 10px; min-height: 0; }
+    .hr-status.error, .hr-result.error { color: #b91c1c; }
+    .hr-status.ok, .hr-result.ok { color: #15803d; }
+    .hr-result .fail { color: #b91c1c; }
+
+    .hr-link {
+      margin-left: auto; border: none; background: none; cursor: pointer;
+      color: var(--accent); font-size: 12px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .hr-link:hover { color: var(--accent-dark); }
+
+    .hr-table-wrap { overflow-x: auto; }
+    .hr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .hr-table thead th {
+      text-align: left; padding: 9px 12px;
+      font-size: 11px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid #e5e7eb; cursor: pointer; white-space: nowrap; user-select: none;
+    }
+    .hr-table thead th:hover { color: var(--accent-dark); }
+    .hr-table thead th .sort-ind { font-size: 9px; margin-left: 3px; opacity: 0.7; }
+    .hr-table tbody td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; }
+    .hr-table tbody tr:hover { background: #f9fafb; }
+    .hr-rankcell { font-weight: 700; color: #111; }
+    .hr-fname { font-weight: 500; }
+
+    .score-badge {
+      display: inline-block; min-width: 44px; text-align: center;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .score-badge.high { background: #dcfce7; color: #15803d; }
+    .score-badge.mid  { background: #fef9c3; color: #a16207; }
+    .score-badge.low  { background: #fee2e2; color: #b91c1c; }
+
+    .hr-empty { text-align: center; color: #9ca3af; font-size: 13px; padding: 26px 10px; }
   </style>
 </head>
 <body>
@@ -489,10 +667,11 @@
       <form id="authForm">
         <input id="authEmailInput" type="email" placeholder="Email" autocomplete="email" required />
         <input id="authPasswordInput" type="password" placeholder="Password" autocomplete="current-password" required minlength="8" />
-        <select id="authRoleInput" title="Role">
+        <select id="authRoleInput" title="Role (applies to sign up only)">
           <option value="user">User</option>
           <option value="admin">HR admin</option>
         </select>
+        <div class="auth-hint">Role applies to sign up only — your account's role is fixed.</div>
         <div class="auth-actions">
           <button type="submit" data-mode="login">Log in</button>
           <button type="submit" data-mode="signup">Sign up</button>
@@ -502,6 +681,13 @@
         <span id="authEmail"></span>
         <button id="logoutBtn" type="button">Log out</button>
       </div>
+    </div>
+
+    <!-- View toggle: Chat vs HR Dashboard. HR tab stays hidden until /auth/me
+         confirms an admin role (see hr.js applyRoleVisibility). -->
+    <div class="view-toggle">
+      <button type="button" id="tabChat" class="view-tab active" data-view="chat"><i class="fas fa-comments"></i> Chat</button>
+      <button type="button" id="tabHr" class="view-tab hidden" data-view="hr"><i class="fas fa-users-gear"></i> HR Dashboard</button>
     </div>
 
     <div class="sidebar-pad">
@@ -593,6 +779,69 @@
       </div>
     </main>
 
+    <!-- HR / Admin Dashboard (hidden until the HR tab is selected) -->
+    <section id="hr-dashboard" class="hidden">
+      <div class="hr-topbar">
+        <div>
+          <div class="topbar-title">HR Dashboard</div>
+          <div class="topbar-sub">Bulk upload, rank, and export candidates</div>
+        </div>
+        <button type="button" id="hrExportBtn" class="hr-btn-secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
+      </div>
+
+      <div class="hr-body">
+        <!-- 1. Bulk upload -->
+        <div class="hr-card">
+          <div class="hr-card-title"><i class="fas fa-cloud-arrow-up"></i> Bulk upload resumes</div>
+          <input type="file" id="hrFileInput" class="hidden" multiple accept=".pdf,.docx,.txt,.zip" />
+          <label for="hrFileInput" class="hr-dropzone" id="hrDropzone">
+            <i class="fas fa-folder-open"></i>
+            <div class="uz-title">Click to select files</div>
+            <div class="uz-sub">PDF, DOCX, TXT, or a .zip — multiple files allowed</div>
+          </label>
+          <ul id="hrFileList" class="hr-file-list"></ul>
+          <div class="hr-progress hidden" id="hrProgressWrap"><div class="hr-progress-bar" id="hrProgressBar"></div></div>
+          <button type="button" class="hr-btn-primary" id="hrUploadBtn" disabled><i class="fas fa-arrow-up-from-bracket"></i> Upload files</button>
+          <div id="hrUploadResult" class="hr-result"></div>
+        </div>
+
+        <!-- 2. Rank candidates -->
+        <div class="hr-card">
+          <div class="hr-card-title"><i class="fas fa-ranking-star"></i> Rank candidates</div>
+          <div class="hr-rank-row">
+            <input type="text" id="hrJobTitle" placeholder="Job title, e.g. AI Engineer" />
+            <button type="button" class="hr-btn-primary" id="hrRankBtn"><i class="fas fa-list-ol"></i> Rank candidates</button>
+          </div>
+          <div id="hrRankStatus" class="hr-status"></div>
+        </div>
+
+        <!-- 3. Ranked results -->
+        <div class="hr-card">
+          <div class="hr-card-title">
+            <i class="fas fa-table"></i> Ranked results
+            <button type="button" id="hrRefreshBtn" class="hr-link"><i class="fas fa-rotate"></i> Refresh</button>
+          </div>
+          <div class="hr-table-wrap">
+            <table class="hr-table" id="hrTable">
+              <thead>
+                <tr>
+                  <th data-sort="rank">Rank</th>
+                  <th data-sort="file_name">Candidate</th>
+                  <th data-sort="skills_score">Skills</th>
+                  <th data-sort="experience_score">Experience</th>
+                  <th data-sort="education_score">Education</th>
+                  <th data-sort="overall_score">Overall</th>
+                </tr>
+              </thead>
+              <tbody id="hrTableBody">
+                <tr><td colspan="6" class="hr-empty">No rankings yet — upload resumes and run “Rank candidates”.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script src="app.js"></script>
@@ -641,6 +890,30 @@
       chatMessages.appendChild(wrap);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     };
+
+    // Renders an uploaded file as a visible chip in the chat thread (ChatGPT-style).
+    window.appendFileChip = function(file) {
+      const name = (file && (file.file_name || file.name)) || 'Uploaded file';
+      const sizeKb = file && file.file_size ? Math.max(1, Math.round(file.file_size / 1024)) : null;
+      const ext = (name.includes('.') ? name.split('.').pop() : 'file').toUpperCase();
+      const sub = sizeKb ? `${ext} · ${sizeKb} KB` : ext;
+      const wrap = document.createElement('div');
+      wrap.className = 'file-chip-wrap';
+      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin:6px 0;';
+      wrap.innerHTML = `
+        <div class="file-chip" style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px 14px;box-shadow:0 1px 2px rgba(0,0,0,0.05);max-width:320px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#4f46e5;flex-shrink:0;">
+            <i class="fas fa-file-lines"></i>
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:600;font-size:13px;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+            <div style="font-size:11px;color:#6b7280;">${sub}</div>
+          </div>
+        </div>`;
+      chatMessages.appendChild(wrap);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
   </script>
+  <script src="hr.js"></script>
 </body>
 </html>

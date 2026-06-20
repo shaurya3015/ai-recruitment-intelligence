@@ -1,22 +1,40 @@
 import ollama
 
+client = ollama.Client(host='http://localhost:11434')
+
 SYSTEM_PROMPT = "You are ResumeAI, a professional resume screening and candidate analysis assistant. Your role is to help HR teams analyze resumes, compare candidates, and answer recruitment questions. For non-resume questions, politely redirect focus to resume analysis. Be professional and concise."
 
-def get_ai_response(prompt: str) -> str:
+def get_ai_response(prompt: str, history: list = None) -> str:
     """Generates a chat response using Ollama."""
     try:
-        response = ollama.chat(
+        messages = [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            }
+        ]
+        
+        if history:
+            for msg in history:
+                if isinstance(msg, dict):
+                    role = msg.get("role")
+                    content = msg.get("content")
+                else:
+                    role = msg.role
+                    content = msg.content
+                messages.append({
+                    "role": role,
+                    "content": content,
+                })
+                
+        messages.append({
+            "role": "user",
+            "content": prompt,
+        })
+        
+        response = client.chat(
             model="neural-chat:7b",
-            messages=[
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT,
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
+            messages=messages,
         )
         return response['message']['content']
     except Exception as e:

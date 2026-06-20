@@ -36,12 +36,23 @@ def get_or_create_user_collection(user_id: int) -> str:
 
 
 def _embed(text: str):
-    response = ollama.embeddings(model=EMBEDDING_MODEL, prompt=text)
+    client = ollama.Client(host='http://localhost:11434')
+    response = client.embeddings(model=EMBEDDING_MODEL, prompt=text)
     return response["embedding"]
 
 
-def embed_and_store_resume(user_id: int, resume_id: int, text: str, file_name: str = "") -> int | None:
-    """Generate an embedding for a resume and store it in the user's collection."""
+def embed_and_store_resume(
+    user_id: int,
+    resume_id: int,
+    text: str,
+    file_name: str = "",
+    conversation_id: int | None = None,
+) -> int | None:
+    """Generate an embedding for a resume and store it in the user's collection.
+
+    The point payload carries ``conversation_id`` so retrieval can be scoped to a
+    single chat and never leak files from other conversations.
+    """
     collection_name = get_or_create_user_collection(user_id)
 
     try:
@@ -60,6 +71,7 @@ def embed_and_store_resume(user_id: int, resume_id: int, text: str, file_name: s
                     vector=vector,
                     payload={
                         "resume_id": resume_id,
+                        "conversation_id": conversation_id,
                         "file_name": file_name,
                         "text": text[:1000],
                         "full_text": text,
@@ -73,17 +85,38 @@ def embed_and_store_resume(user_id: int, resume_id: int, text: str, file_name: s
         return None
 
 
-def search_user_resumes(user_id: int, query: str, limit: int = 5):
-    """Search only within a user's resume collection."""
+def search_user_resumes(
+    user_id: int,
+    query: str,
+    limit: int = 5,
+    resume_id: int | None = None,
+    conversation_id: int | None = None,
+):
+    """Search within a user's resume collection, optionally scoped to one chat.
+
+    When ``conversation_id`` is provided, only points uploaded in that conversation
+    are searchable — files from other chats (or the older pre-scoping points that
+    have no ``conversation_id`` in their payload) are excluded.
+    """
+    from qdrant_client.models import Filter, FieldCondition, MatchValue
     collection_name = f"user_{user_id}"
 
     try:
         qdrant = get_qdrant_client()
         vector = _embed(query)
+
+        must = []
+        if resume_id is not None:
+            must.append(FieldCondition(key="resume_id", match=MatchValue(value=resume_id)))
+        if conversation_id is not None:
+            must.append(FieldCondition(key="conversation_id", match=MatchValue(value=conversation_id)))
+        query_filter = Filter(must=must) if must else None
+
         res = qdrant.query_points(
             collection_name=collection_name,
             query=vector,
             limit=limit,
+            query_filter=query_filter,
             score_threshold=0.3,
             with_payload=True,
         )

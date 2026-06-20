@@ -3,19 +3,23 @@
 A locally-running RAG-based resume screening system for HR workflows. Upload resumes, ask natural language questions, and get ranked candidates.
 
 ## Features
-- PDF/DOCX/TXT resume upload with per-user isolation
-- Semantic search via Qdrant vector store
-- Chat interface powered by Ollama (neural-chat:7b) — runs fully local
-- JWT authentication (signup/login/refresh)
-- Candidate ranking with skill extraction scoring
-- Bulk upload support
-- Clean HTML/JS frontend — no framework required
+
+- PDF/DOCX/TXT resume upload with per-conversation isolation (ChatGPT-style — 
+  each chat only sees its own uploaded files)
+- Persistent chat memory within a conversation
+- Semantic search via Qdrant (local/embedded mode)
+- HR/Admin dashboard: bulk resume upload, candidate ranking against a job title, 
+  CSV export
+- Role-based access control (user vs admin), enforced server-side via JWT claims
+- Hybrid ranking algorithm: keyword/skill matching + embedding similarity 
+  (nomic-embed-text), normalized 0–100 across relevance/experience/education
 
 ## Tech Stack
 FastAPI · SQLite (SQLAlchemy) · Qdrant · Ollama (neural-chat:7b) · JWT · Python 3.11+
 
 ## Architecture
 
+```
 ┌─────────────────────────────────────────────────────────┐
 │      AI-POWERED RECRUITMENT INTELLIGENCE PLATFORM        │
 │                 SYSTEM ARCHITECTURE                      │
@@ -45,6 +49,7 @@ BACKEND LAYER:
      │ (SQLite)  │   │  Vector   │  │ neural-  │
      │           │   │  Store    │  │ chat:7b  │
      └───────────┘   └───────────┘  └──────────┘
+```
 DATA FLOW:
 
 1.User uploads resume → Saved to database
@@ -105,3 +110,8 @@ resume-ai-chatbot/
 - All data stays local — no cloud APIs, no external calls
 - Resumes stored per-user under `uploaded_resumes/user_{id}/`
 - Qdrant collections are scoped per user for isolation
+
+## Known limitations
+- Legacy conversations created before isolation was added are not retroactively scoped
+- Admin signup is currently open (no invite gating) — fine for local/demo use, 
+  not production-ready

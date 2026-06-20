@@ -35,6 +35,11 @@ class Resume(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # Scopes a resume to the chat it was uploaded in (ChatGPT-style isolation).
+    # Plain indexed column (no FK) to avoid a second FK path between resumes and
+    # conversations, which would make the existing relationships ambiguous.
+    # NULL = not tied to a chat (e.g. HR bulk-upload pool).
+    conversation_id = Column(Integer, index=True, nullable=True)
     file_name = Column(String, nullable=False)
     file_path = Column(String)
     file_size = Column(Integer)
@@ -110,6 +115,14 @@ def init_db():
             }
             if "sources" not in existing_columns:
                 connection.exec_driver_sql("ALTER TABLE messages ADD COLUMN sources TEXT")
+                connection.commit()
+
+            resume_columns = {
+                row[1]
+                for row in connection.exec_driver_sql("PRAGMA table_info(resumes)").fetchall()
+            }
+            if "conversation_id" not in resume_columns:
+                connection.exec_driver_sql("ALTER TABLE resumes ADD COLUMN conversation_id INTEGER")
                 connection.commit()
     print("Database tables created successfully!")
 

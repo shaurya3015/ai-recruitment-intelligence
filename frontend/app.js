@@ -1,4 +1,4 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "http://localhost:8000";
 
 // --- STATE & DOM REFERENCES ---
 let activeConversationId = null;
@@ -221,6 +221,10 @@ async function selectConversation(id) {
         messages.forEach(msg => {
             if (msg.role === 'user') appendUserMessage(msg.content);
             else if (msg.role === 'assistant') appendBotMessage({ answer: msg.content, sources: msg.sources });
+            else if (msg.role === 'file' && window.appendFileChip) {
+                const meta = (msg.sources && msg.sources[0]) || { file_name: msg.content };
+                appendFileChip(meta);
+            }
         });
     } catch (error) {
         console.error("Error loading messages:", error);
@@ -231,6 +235,12 @@ async function selectConversation(id) {
 async function startNewChat() {
     if (!requireAuth()) return;
     try {
+        // Clear any pending file selection so nothing carries over into the new chat.
+        const fileInput = document.getElementById('resumeInput');
+        if (fileInput) fileInput.value = '';
+        const fileNameLabel = document.getElementById('fileName');
+        if (fileNameLabel) fileNameLabel.textContent = '';
+
         const res = await fetch(`${API_BASE}/conversations`, { method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({}) });
         if (!res.ok) throw new Error("Failed to create new chat.");
         const newConvo = await res.json();
@@ -347,13 +357,20 @@ async function handleUpload() {
   if (!requireAuth()) return;
   const fileInput = document.getElementById("resumeInput");
   if (!fileInput.files.length) { alert("Please select a file to upload."); return; }
+  // Capture the file first: starting a new chat clears the file input.
+  const file = fileInput.files[0];
+  // Make sure there's a conversation to attach this resume to, so the chat is
+  // scoped to it instead of the whole collection.
+  if (!activeConversationId) await startNewChat();
   const formData = new FormData();
-  formData.append("file", fileInput.files[0]);
+  formData.append("file", file);
+  if (activeConversationId) formData.append("conversation_id", activeConversationId);
   try {
     const res = await fetch(`${API_BASE}/upload/resume`, { method: "POST", headers: authHeaders(), body: formData });
     if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
-    await res.json();
-    alert("Uploaded successfully");
+    const data = await res.json();
+    // Show the uploaded file as a chip in the current chat thread.
+    if (window.appendFileChip) appendFileChip(data);
     document.getElementById('fileName').textContent = '';
     fileInput.value = '';
   } catch (error) {
