@@ -1,0 +1,19 @@
+# Credentials and Secrets
+.env
+*.env
+
+# Local Database & Cache
+*.db
+*.sqlite
+.qdrant/
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db

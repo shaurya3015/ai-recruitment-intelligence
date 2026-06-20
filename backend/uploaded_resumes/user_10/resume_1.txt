@@ -1,0 +1,29 @@
+JOHN SMITH
+Email: john@example.com | Phone: +91-9876543210
+
+PROFESSIONAL SUMMARY
+Senior Python Developer with 8+ years of experience building scalable backend systems. 
+Expert in FastAPI, Django, and microservices architecture. Led teams of 5+ developers.
+
+SKILLS
+- Python (Expert), FastAPI, Django
+- SQL, PostgreSQL, MongoDB
+- REST APIs, Microservices
+- Docker, Kubernetes
+- AWS, GCP
+- Leadership, Team Management
+
+EXPERIENCE
+Senior Backend Developer | TechCorp | 2020-Present
+- Led development of 10+ FastAPI services
+- Managed team of 5 developers
+- Improved API performance by 40%
+- Mentored junior developers
+
+Python Developer | WebSolutions | 2017-2020
+- Built Django REST APIs
+- Implemented database optimization
+- Deployed on AWS
+
+EDUCATION
+B.Tech Computer Science | IIT Bombay | 2016

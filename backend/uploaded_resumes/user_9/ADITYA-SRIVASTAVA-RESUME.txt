@@ -1,0 +1,3 @@
+Aditya Srivastava
+Technical Skills: Python, C++, SQL, PyTorch, TensorFlow, Scikit-learn, Docker, RAG, NLP, Computer Vision.
+Experience: AI Engineer Intern at ArchiGen AI Labs.

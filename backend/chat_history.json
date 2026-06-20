@@ -1,0 +1,34 @@
+[
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, I've reviewed the candidate information you provided. How can I help you with it? For example, are you looking to:\n\n*   **Compare candidates?** (e.g., \"Compare Raj and Pratyush based on their NLP skills.\")\n*   **Find candidates with specific skills or experience?** (e.g., \"Who has experience with credit risk modeling?\")\n*   **Summarize a candidate's qualifications?** (e.g., \"Summarize Sagar Sonawane's experience.\")\n*   **Something else entirely?**\n\nLet me know what you'd like me to do!"
+  },
+  {
+    "role": "user",
+    "content": "give me 5 candidates with python and sql skill"
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, I have one candidate, Pratyush Das, who has both Python and SQL skills. To find four more, I need you to provide me with information on other candidates. Please share the details of other candidates' backgrounds and skills so I can identify those who also possess Python and SQL proficiency. The more information you give me, the better I can help!"
+  },
+  {
+    "role": "user",
+    "content": "give me the email of Akshay Totewar"
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, great! I now have information on Akshay Totewar.\n\nSince you asked for his email, here it is: **akshay01@gmail.com**\n\nAnd, to answer your previous request for candidates with Python and SQL skills:\n\n*   **Pratyush Das** (from previous context)\n*   **Akshay Totewar** (based on the information you just provided)\n\nI still need three more candidates to fulfill your request. Please provide information on more candidates."
+  },
+  {
+    "role": "user",
+    "content": "you have the info already"
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, great! Based on the candidate information you've provided, here are five candidates with Python and SQL skills:\n\n1.  **Pratyush Das** (from previous context)\n2.  **Akshay Totewar** (from previous context)\n3.  **Dhruba Jyoti Chakraborty**\n4.  **Amit Kumar Singh**\n5.  **Prateem Chakraborty**"
+  }
+]

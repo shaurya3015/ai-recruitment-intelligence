@@ -1,0 +1,27 @@
+RAJESH PATEL
+Email: rajesh@example.com | Phone: +91-8765432109
+
+PROFESSIONAL SUMMARY
+Full Stack Developer with 7+ years building web applications using Node.js, React, and cloud technologies.
+Experienced in leading frontend teams and implementing responsive UIs.
+
+SKILLS
+- Node.js, Express, FastAPI
+- React, Vue.js, TypeScript
+- MongoDB, PostgreSQL
+- Docker, CI/CD
+- AWS, Heroku
+- Agile, Scrum
+
+EXPERIENCE
+Lead Frontend Developer | WebTech | 2020-Present
+- Led team of 4 frontend developers
+- Built React applications used by 100K+ users
+- Implemented design systems
+
+Full Stack Developer | StartupXYZ | 2017-2020
+- Built full stack Node.js + React apps
+- Implemented authentication systems
+
+EDUCATION
+B.Tech IT | Delhi Technological University | 2017

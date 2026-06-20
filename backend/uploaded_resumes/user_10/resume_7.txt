@@ -1,0 +1,27 @@
+VIKRAM SINGH
+Email: vikram@example.com | Phone: +91-4321098765
+
+PROFESSIONAL SUMMARY
+Cloud Architect with 8+ years designing and implementing enterprise cloud solutions.
+AWS Certified Solutions Architect. Expertise in scalable, secure cloud infrastructure.
+
+SKILLS
+- AWS (EC2, S3, Lambda, RDS)
+- Cloud Architecture
+- Terraform, CloudFormation
+- Network Design, Security
+- High Availability, Disaster Recovery
+- Cost Optimization
+
+EXPERIENCE
+Cloud Architect | Enterprise Solutions | 2019-Present
+- Designed cloud infrastructure for Fortune 500 company
+- Reduced cloud costs by 35%
+- Led migration of 500+ applications
+
+Solutions Architect | CloudTech | 2016-2019
+- Designed VPC and security architecture
+- Implemented disaster recovery solutions
+
+EDUCATION
+B.Tech CSE | IIT Delhi | 2016

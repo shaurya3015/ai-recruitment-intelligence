@@ -1,0 +1,28 @@
+ROHAN SHARMA
+Email: rohan@example.com | Phone: +91-2109876543
+
+PROFESSIONAL SUMMARY
+Security Engineer with 7+ years in application and infrastructure security.
+Led security initiatives for SaaS platforms. OSCP certified.
+
+SKILLS
+- Application Security
+- Infrastructure Security
+- Penetration Testing
+- OWASP Top 10
+- Cloud Security (AWS Security)
+- Incident Response
+- Compliance (GDPR, SOC2)
+
+EXPERIENCE
+Senior Security Engineer | SecureBank | 2020-Present
+- Led security audit for 50+ applications
+- Implemented security controls
+- Zero-day incident response
+
+Security Engineer | TechStartup | 2017-2020
+- Built security testing pipeline
+- Conducted penetration tests
+
+EDUCATION
+B.Tech CSE | BITS Pilani | 2017
