@@ -18,7 +18,9 @@ FastAPI · SQLite (SQLAlchemy) · Qdrant · Ollama (neural-chat:7b) · JWT · Py
 
 ┌─────────────────────────────────────────────────────────┐
 
-│         RESUME AI CHATBOT - SYSTEM ARCHITECTURE         │
+│   AI-POWERED RECRUITMENT INTELLIGENCE PLATFORM           │
+
+│            SYSTEM ARCHITECTURE                           │
 
 └─────────────────────────────────────────────────────────┘
 CLIENT LAYER:
